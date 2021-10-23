@@ -60,8 +60,17 @@ var (
 	// (typically opened by another process)
 	ErrDatabaseLocked = errors.New("error: database locked")
 
-	ErrInvalidRange   = errors.New("error: invalid range")
+	// ErrInvalidRange is the error returned when the range scan is invalid
+	ErrInvalidRange = errors.New("error: invalid range")
+
+	// ErrInvalidVersion is the error returned when the database version is invalid
 	ErrInvalidVersion = errors.New("error: invalid db version")
+
+	// ErrBadConfig is the error returned on failure to load the database config
+	ErrBadConfig = errors.New("error: bad or corrupt config.json")
+
+	// ErrBadMetadata is the error returned on failure to load the database metadata
+	ErrBadMetadata = errors.New("error: bad or corrupt meta.json")
 
 	// ErrMergeInProgress is the error returned if merge is called when already a merge
 	// is in progress
@@ -864,7 +873,7 @@ func Open(path string, options ...Option) (*Bitcask, error) {
 	if internal.Exists(configPath) {
 		cfg, err = config.Load(configPath)
 		if err != nil {
-			return nil, err
+			return nil, ErrBadConfig
 		}
 	} else {
 		cfg = newDefaultConfig()
@@ -886,7 +895,7 @@ func Open(path string, options ...Option) (*Bitcask, error) {
 
 	meta, err = loadMetadata(path)
 	if err != nil {
-		return nil, err
+		return nil, ErrBadMetadata
 	}
 
 	bitcask := &Bitcask{
